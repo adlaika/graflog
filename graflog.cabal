@@ -1,5 +1,5 @@
 name:                graflog
-version:             0.1.0
+version:             0.1.1
 synopsis:            Monadic correlated log events
 description:         Please see README.md
 homepage:            https://github.com/m-arnold/graflog#readme
@@ -8,7 +8,7 @@ license-file:        LICENSE
 author:              Michael Adlai Arnold
 maintainer:          marnold@cj.com
 copyright:           2016 Michael A. Arnold
-category:            Development
+category:            Logging
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
