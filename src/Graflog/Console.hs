@@ -18,3 +18,6 @@ writeStdout' = liftIO . T.putStrLn
 -- this function forces stdout into line buffering mode; useful for CloudFormation logs
 enableStdoutLineBuffering :: MonadIO m => m ()
 enableStdoutLineBuffering = liftIO $ hSetBuffering stdout LineBuffering
+
+instance Console IO where
+  writeStdout = writeStdout'

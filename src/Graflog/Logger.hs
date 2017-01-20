@@ -51,3 +51,6 @@ jsonEncode :: ToJSON a => a -> Text
 jsonEncode = byteStringToText . toStrict . encode
   where byteStringToText :: ByteString -> Text
         byteStringToText bs = fromJust $ decodeConvertText (UTF8 (bs :: ByteString))
+
+instance Logger IO where
+  logEvent = logEvent'
