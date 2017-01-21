@@ -7,11 +7,12 @@ module Graflog.Logger
   , CorrelationId(..)
   , EventId(..)
   , Action(..)
+  , Protected(..)
   , logEvent'
   , jsonEncode
   ) where
 
-import Data.Aeson (ToJSON, FromJSON, encode)
+import Data.Aeson (ToJSON, FromJSON, encode, Value)
 import Data.Aeson.TH (deriveJSON, defaultOptions, fieldLabelModifier)
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy (toStrict)
@@ -21,6 +22,9 @@ import Data.Text (Text)
 import Data.Text.Conversions (decodeConvertText, UTF8(..))
 
 import Graflog.Console
+
+newtype Protected a = Protected { unProtect :: a }
+  deriving (Functor, Show, Eq)
 
 class Monad m => Logger m where
   logEvent :: Event -> m ()
@@ -38,7 +42,7 @@ data Event = Event
   { _correlationId :: CorrelationId
   , _eventId :: EventId
   , _action :: Action
-  , _message :: Text
+  , _message :: Value
   } deriving (Eq, Show)
 
 deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''Event
