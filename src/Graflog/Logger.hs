@@ -12,19 +12,25 @@ module Graflog.Logger
   , jsonEncode
   ) where
 
-import Data.Aeson (ToJSON, FromJSON, encode, Value)
+import Data.Aeson
 import Data.Aeson.TH (deriveJSON, defaultOptions, fieldLabelModifier)
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy (toStrict)
 import Data.Maybe (fromJust)
 import Data.String (IsString)
-import Data.Text (Text)
+import Data.Text (Text(..))
 import Data.Text.Conversions (decodeConvertText, UTF8(..))
 
 import Graflog.Console
 
 newtype Protected a = Protected { unProtect :: a }
   deriving (Functor, Show, Eq)
+
+instance ToJSON a => ToJSON (Protected a) where
+  toJSON (Protected a) = "(REDACTED)"
+
+instance FromJSON a => FromJSON (Protected a) where
+  parseJSON v = Protected <$> parseJSON v
 
 class Monad m => Logger m where
   logEvent :: Event -> m ()
