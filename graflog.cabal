@@ -1,5 +1,5 @@
 name:                graflog
-version:             1.0.0
+version:             2.0.0
 synopsis:            Monadic correlated log events
 description:         Please see README.md
 homepage:            https://github.com/m-arnold/graflog#readme
