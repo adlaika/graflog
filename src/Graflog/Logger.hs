@@ -69,6 +69,14 @@ instance ToLog Double where
 instance ToLog a => ToLog (Map Text a) where
   toLog = Dictionary . fmap toLog
 
+instance (ToLog a, ToLog b) => ToLog (Either a b) where
+  toLog (Left l) = dictionary [ pair "left" [toLog l] ]
+  toLog (Right r) = dictionary [ pair "right" [toLog r] ]
+
+instance ToLog a => ToLog (Maybe a) where
+  toLog (Just a) = dictionary [ pair "some" (List [toLog a]) ]
+  toLog Nothing = dictionary [ pair "none" (List []) ]
+
 dictionary :: [(Text, Log)] -> Log
 dictionary = Dictionary . Map.fromList
 

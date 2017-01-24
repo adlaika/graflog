@@ -93,6 +93,20 @@ spec = do
             , ("password", Redacted)
             ])
       toLog user `shouldBe` expected
+    it "should convert Either to Dictionary" $ do
+      let left = Left "error" :: Either Text Text
+      let expected = dictionary [ pair "left" (List ["error"]) ]
+      toLog left `shouldBe` expected
+      let right = Right "success" :: Either Text Text
+      let expected = dictionary [ pair "right" (List ["success"]) ]
+      toLog right `shouldBe` expected
+    it "should convert Maybe to Dictionary" $ do
+      let just = Just "data" :: Maybe Text
+      let expected = dictionary [ pair "some" (List ["data"]) ]
+      toLog just `shouldBe` expected
+      let nothing = Nothing :: Maybe Text
+      let expected = dictionary [ pair "none" (List []) ]
+      toLog nothing `shouldBe` expected
   describe "ToJSON Log" $ do
     it "should convert Message to String" $ do
       let message = Message "hello"
