@@ -1,5 +1,5 @@
 name:                graflog
-version:             2.0.0
+version:             3.0.0
 synopsis:            Monadic correlated log events
 description:         Please see README.md
 homepage:            https://github.com/m-arnold/graflog#readme
@@ -21,6 +21,7 @@ library
                      , text
                      , aeson
                      , bytestring
+                     , containers
   default-language:    Haskell2010
   default-extensions:  GeneralizedNewtypeDeriving DeriveFunctor FlexibleContexts FlexibleInstances
 
@@ -35,6 +36,7 @@ test-suite graflog-test
                      , mtl
                      , text
                      , aeson
+                     , containers
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
   default-extensions:  ConstraintKinds DeriveGeneric FlexibleContexts FlexibleInstances GADTs GeneralizedNewtypeDeriving KindSignatures LambdaCase MultiParamTypeClasses NamedFieldPuns OverloadedStrings RankNTypes ScopedTypeVariables TypeOperators DuplicateRecordFields

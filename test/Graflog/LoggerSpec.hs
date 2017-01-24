@@ -9,7 +9,8 @@ import Control.Monad.TestFixture
 import Control.Monad.TestFixture.TH
 import Data.Text
 import Data.Aeson
-import Data.Aeson.TH
+import Data.Map (Map(..))
+import qualified Data.Map as Map
 import Test.Hspec
 
 import Graflog.Logger
@@ -18,18 +19,15 @@ import Graflog.Console
 mkFixture "Fixture" [''Console]
 
 data User = User
-  { password :: Protected Text
+  { password :: Text
   , email :: Text
   } deriving (Eq, Show)
 
-deriveJSON defaultOptions ''User
-
-data UserPair = UserPair
-  { user1 :: User
-  , user2 :: User
-  } deriving (Eq, Show)
-
-deriveJSON defaultOptions ''UserPair
+instance ToLog User where
+  toLog User{email, password} = dictionary
+    [ pair "email" email
+    , pair "password" Redacted
+    ]
 
 spec :: Spec
 spec = do
@@ -48,32 +46,73 @@ spec = do
             }
       result <- logTestFixtureT (logEvent' stubEvent) fixture
       result `shouldBe` ["writeStdout called" :: String]
-
-  describe "Protected serialization" $ do
-    let protectedUser = User
-          { password = Protected ("rosebud" :: Text)
-          , email = "test@test.com"
-          }
-    let expectedUser = object
-          [ "password" .= ("(REDACTED)" :: Text)
-          , "email" .= ("test@test.com" :: Text)
-          ]
-          
-    it "should redact Protected text" $ do
-      let superSecret = Protected ("the ruskies have the bomb" :: Text)
-      let expected = "(REDACTED)"
-      toJSON superSecret `shouldBe` expected
-
-    it "should redact Protected record fields" $ do
-      toJSON protectedUser `shouldBe` expectedUser
-
-    it "should redact nested Protected records" $ do
-      let usergroup = UserPair
-            { user1 = protectedUser
-            , user2 = protectedUser
-            }
-      let expected = object
-            [ "user1" .= expectedUser
-            , "user2" .= expectedUser
+  describe "toLog" $ do
+    it "should convert Log to Log" $ do
+      let loog = Message "hello"
+      let expected = "hello"
+      toLog loog `shouldBe` expected
+    it "should convert Text to Message" $ do
+      let text = ("hello" :: Text)
+      let expected = "hello"
+      toLog text `shouldBe` expected
+      True `shouldBe` True
+    it "should convert list to List" $ do
+      let list = [("boop" :: Text), "bop"]
+      let expected = List ["boop", "bop"]
+      toLog list `shouldBe` expected
+    it "should convert num to Message" $ do
+      let integer = (1234 :: Integer)
+      let expected = "1234"
+      toLog integer `shouldBe` expected
+      let int = (123 :: Int)
+      let expected = "123"
+      toLog int `shouldBe` expected
+      let float = (123.456 :: Float)
+      let expected = "123.456"
+      toLog float `shouldBe` expected
+      let double = (234.567 :: Double)
+      let expected = "234.567"
+      toLog double `shouldBe` expected
+    it "should convert map to Dictionary" $ do
+      let mapp = (Map.fromList
+            [ ("1", "one")
+            , ("2", "two")
+            ]) :: Map Text Text
+      let expected = dictionary
+            [ pair "1" (Message "one")
+            , pair "2" (Message "two")
             ]
-      toJSON usergroup `shouldBe` expected
+      toLog mapp `shouldBe` expected
+    it "should convert record to Dictionary while redacting fields marked Redacted" $ do
+      let user = User
+            { email = "test@test.com"
+            , password = "secret"
+            }
+      let expected = Dictionary (Map.fromList
+            [ ("email", "test@test.com")
+            , ("password", Redacted)
+            ])
+      toLog user `shouldBe` expected
+  describe "ToJSON Log" $ do
+    it "should convert Message to String" $ do
+      let message = Message "hello"
+      let expected = String "hello"
+      toJSON message `shouldBe` expected
+    it "should redact Redacted" $ do
+      let redacted = Redacted
+      let expected = String "(REDACTED)"
+      toJSON redacted `shouldBe` expected
+    it "should convert Dictionary to Object" $ do
+      let dict = Dictionary (Map.fromList
+            [ ("email", Message "test@test.com")
+            , ("password", Redacted)
+            ])
+      let expected = object
+            [ ("email" :: Text) .= ("test@test.com" :: Text)
+            , ("password" :: Text) .= ("(REDACTED)" :: Text)
+            ]
+      toJSON dict `shouldBe` expected
+    it "should convert List to Array" $ do
+      let list = List [Message "foo", Message "bar"]
+      let expected = toJSON (["foo", "bar"] :: [Text])
+      toJSON list `shouldBe` expected
