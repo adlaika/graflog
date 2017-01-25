@@ -31,6 +31,7 @@ import Graflog.Console
 
 data Log
   = Dictionary (Map Text Log)
+  | Variant Text [Log]
   | List [Log]
   | Message Text
   | Redacted
@@ -70,12 +71,12 @@ instance ToLog a => ToLog (Map Text a) where
   toLog = Dictionary . fmap toLog
 
 instance (ToLog a, ToLog b) => ToLog (Either a b) where
-  toLog (Left l) = dictionary [ pair "left" [toLog l] ]
-  toLog (Right r) = dictionary [ pair "right" [toLog r] ]
+  toLog (Left l) = Variant "left" [toLog l]
+  toLog (Right r) = Variant "right" [toLog r]
 
 instance ToLog a => ToLog (Maybe a) where
-  toLog (Just a) = dictionary [ pair "some" (List [toLog a]) ]
-  toLog Nothing = dictionary [ pair "none" (List []) ]
+  toLog (Just a) = Variant "some" [toLog a]
+  toLog Nothing = Variant "none" []
 
 dictionary :: [(Text, Log)] -> Log
 dictionary = Dictionary . Map.fromList
@@ -87,6 +88,7 @@ instance ToJSON Log where
   toJSON (Message a) = String a
   toJSON (List a) = toJSON a
   toJSON (Dictionary a) = toJSON a
+  toJSON (Variant tag values) = toJSON $ Map.fromList [(tag, map toJSON values)]
   toJSON Redacted = String "(REDACTED)"
 
 class Monad m => Logger m where

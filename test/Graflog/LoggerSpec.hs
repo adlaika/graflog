@@ -93,19 +93,19 @@ spec = do
             , ("password", Redacted)
             ])
       toLog user `shouldBe` expected
-    it "should convert Either to Dictionary" $ do
+    it "should convert Either to Variant" $ do
       let left = Left "error" :: Either Text Text
-      let expected = dictionary [ pair "left" (List ["error"]) ]
+      let expected = Variant "left"  [Message "error"]
       toLog left `shouldBe` expected
       let right = Right "success" :: Either Text Text
-      let expected = dictionary [ pair "right" (List ["success"]) ]
+      let expected = Variant "right" [Message "success"]
       toLog right `shouldBe` expected
-    it "should convert Maybe to Dictionary" $ do
+    it "should convert Maybe to Variant" $ do
       let just = Just "data" :: Maybe Text
-      let expected = dictionary [ pair "some" (List ["data"]) ]
+      let expected = Variant "some" [Message "data"]
       toLog just `shouldBe` expected
       let nothing = Nothing :: Maybe Text
-      let expected = dictionary [ pair "none" (List []) ]
+      let expected = Variant "none" []
       toLog nothing `shouldBe` expected
   describe "ToJSON Log" $ do
     it "should convert Message to String" $ do
@@ -116,6 +116,12 @@ spec = do
       let redacted = Redacted
       let expected = String "(REDACTED)"
       toJSON redacted `shouldBe` expected
+    it "should convert Variant to Object" $ do
+      let variant = Variant "right" [Message "test"]
+      let expected = object
+            [ "right" .= ["test" :: Value]
+            ]
+      toJSON variant `shouldBe` expected
     it "should convert Dictionary to Object" $ do
       let dict = Dictionary (Map.fromList
             [ ("email", Message "test@test.com")
