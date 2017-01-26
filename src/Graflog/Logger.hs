@@ -8,7 +8,7 @@ module Graflog.Logger
   , CorrelationId(..)
   , EventId(..)
   , Action(..)
-  , logEvent'
+  , logJSON'
   , jsonEncode
   , ToLog(..)
   , Log(..)
@@ -96,7 +96,7 @@ instance ToJSON Log where
   toJSON Redacted = String redacted
 
 class Monad m => Logger m where
-  logEvent :: Event -> m ()
+  logJSON :: Event -> m ()
 
 newtype CorrelationId = CorrelationId Integer
   deriving (Eq, Show, Num, FromJSON, ToJSON)
@@ -123,8 +123,8 @@ instance ToJSON Event where
       , "message" .= _message
       ]
 
-logEvent' :: Console m => Event -> m ()
-logEvent' = writeStdout . jsonEncode
+logJSON' :: Console m => Event -> m ()
+logJSON' = writeStdout . jsonEncode
 
 -- this will always work b/c UTF8 spec
 jsonEncode :: ToJSON a => a -> Text
@@ -133,4 +133,4 @@ jsonEncode = byteStringToText . toStrict . encode
         byteStringToText bs = fromJust $ decodeConvertText (UTF8 (bs :: ByteString))
 
 instance Logger IO where
-  logEvent = logEvent'
+  logJSON = logJSON'

@@ -31,7 +31,7 @@ instance ToLog User where
 
 spec :: Spec
 spec = do
-  describe "logEvent'" $ do
+  describe "logJSON'" $ do
     it "should call stdout with serialized json" $ do
       let stubEvent = Event
             { _correlationId = 1
@@ -44,7 +44,7 @@ spec = do
                 lift $ json `shouldBe` jsonEncode stubEvent
                 log "writeStdout called"
             }
-      result <- logTestFixtureT (logEvent' stubEvent) fixture
+      result <- logTestFixtureT (logJSON' stubEvent) fixture
       result `shouldBe` ["writeStdout called" :: String]
   describe "toLog" $ do
     it "should convert Log to Log" $ do
