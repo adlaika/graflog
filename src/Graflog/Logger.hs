@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Graflog.Logger
   ( Logger(..)
@@ -84,12 +85,15 @@ dictionary = Dictionary . Map.fromList
 pair :: ToLog a => Text -> a -> (Text, Log)
 pair key value = (key, toLog value)
 
+redacted :: Text
+redacted = "(REDACTED)"
+
 instance ToJSON Log where
   toJSON (Message a) = String a
   toJSON (List a) = toJSON a
   toJSON (Dictionary a) = toJSON a
   toJSON (Variant tag values) = toJSON $ Map.fromList [(tag, map toJSON values)]
-  toJSON Redacted = String "(REDACTED)"
+  toJSON Redacted = String redacted
 
 class Monad m => Logger m where
   logEvent :: Event -> m ()
@@ -107,9 +111,17 @@ data Event = Event
   { _correlationId :: CorrelationId
   , _eventId :: EventId
   , _action :: Action
-  , _message :: Value
+  , _message :: Log
   } deriving (Eq, Show)
-deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''Event
+
+instance ToJSON Event where
+  toJSON Event{_correlationId, _eventId, _action, _message} =
+    object
+      [ "correlationId" .= _correlationId
+      , "eventId" .= _eventId
+      , "action" .= _action
+      , "message" .= _message
+      ]
 
 logEvent' :: Console m => Event -> m ()
 logEvent' = writeStdout . jsonEncode
