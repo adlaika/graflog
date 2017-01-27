@@ -27,6 +27,10 @@ import qualified Data.Map as Map
 import Data.String (IsString(..))
 import Data.Text (Text(..))
 import Data.Text.Conversions (decodeConvertText, UTF8(..), toText)
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.Writer
+import Control.Monad.State
 
 import Graflog.Console
 
@@ -134,3 +138,15 @@ jsonEncode = byteStringToText . toStrict . encode
 
 instance Logger IO where
   logJSON = logJSON'
+
+instance (Logger m) => Logger (ExceptT e m) where
+  logJSON = lift . logJSON
+
+instance (Logger m) => Logger (ReaderT r m) where
+  logJSON = lift . logJSON
+
+instance (Logger m, Monoid w) => Logger (WriterT w m) where
+  logJSON = lift . logJSON
+
+instance (Logger m) => Logger (StateT s m) where
+  logJSON = lift . logJSON
