@@ -51,6 +51,8 @@ spec = do
       let loog = Message "hello"
       let expected = "hello"
       toLog loog `shouldBe` expected
+    it "should convert () to empty Dictionary" $
+      toLog () `shouldBe` Dictionary mempty
     it "should convert Text to Message" $ do
       let text = ("hello" :: Text)
       let expected = "hello"
