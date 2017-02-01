@@ -76,7 +76,7 @@ instance ToLog a => ToLog (Map Text a) where
   toLog = Dictionary . fmap toLog
 
 instance ToLog () where
-  toLog = dictionary []
+  toLog _ = dictionary []
 
 instance (ToLog a, ToLog b) => ToLog (Either a b) where
   toLog (Left l) = Variant "left" [toLog l]
