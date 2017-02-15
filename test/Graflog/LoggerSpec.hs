@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module Graflog.LoggerSpec (spec) where
@@ -16,7 +17,7 @@ import Test.Hspec
 import Graflog.Logger
 import Graflog.Console
 
-mkFixture "Fixture" [''Console]
+mkFixture "Fixture" [ts| Console |]
 
 data User = User
   { password :: Text
